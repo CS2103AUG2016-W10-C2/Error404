@@ -65,6 +65,17 @@ Examples:
   `delete 1`<br>
   Deletes the 1st person in the results of the `find` command.
 
+## Editing a person : `edit`
+Edit the specified person from the address book. Irreversible.<br>
+Format: `edit INDEX [NAME] [[p]p/PHONE_NUMBER] [[p]e/EMAIL] [[p]a/ADDRESS] [t/TAG]...`
+
+> Deletes the person at the specified `INDEX`. 
+  The index refers to the index number shown in the most recent listing.
+> Words in `UPPER_CASE` are the parameters, items in `SQUARE_BRACKETS` are optional, 
+> items with `...` after them can have multiple instances. Order of parameters are fixed. 
+> 
+> Put a `p` before the phone / email / address prefixes to mark it as `private`. `private` details can only
+
 ## View non-private details of a person : `view`
 Displays the non-private details of the specified person.<br>
 Format: `view INDEX`

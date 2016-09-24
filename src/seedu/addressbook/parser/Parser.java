@@ -25,6 +25,14 @@ public class Parser {
                     + " (?<isEmailPrivate>p?)e/(?<email>[^/]+)"
                     + " (?<isAddressPrivate>p?)a/(?<address>[^/]+)"
                     + "(?<tagArguments>(?: t/[^/]+)*)"); // variable number of tags
+    
+    public static final Pattern PERSON_EDIT_DATA_ARGS_FORMAT = // '/' forward slashes are reserved for delimiter prefixes
+            Pattern.compile("(?<targetIndex>\\d)"
+                    + "(( (?<name>(?:[^/]+)))?)"
+                    + "(( (?<isPhonePrivate>p?)p/(?<phone>[^/]+))?)"
+                    + "(( (?<isEmailPrivate>p?)e/(?<email>[^/]+))?)"
+                    + "(( (?<isAddressPrivate>p?)a/(?<address>[^/]+))?)"
+                    + "(?<tagArguments>(?: t/[^/]+)*)"); // variable number of tags
 
 
     /**
@@ -64,6 +72,9 @@ public class Parser {
 
             case DeleteCommand.COMMAND_WORD:
                 return prepareDelete(arguments);
+                
+            case EditCommand.COMMAND_WORD:
+                return prepareEdit(arguments);
 
             case ClearCommand.COMMAND_WORD:
                 return new ClearCommand();
@@ -116,6 +127,43 @@ public class Parser {
 
                     getTagsFromArgs(matcher.group("tagArguments"))
             );
+        } catch (IllegalValueException ive) {
+            return new IncorrectCommand(ive.getMessage());
+        }
+    }
+    
+    /**
+     * Parses arguments in the context of the edit person command.
+     *
+     * @param args full command args string
+     * @return the prepared command
+     */
+    private Command prepareEdit(String args){
+        final Matcher matcher = PERSON_EDIT_DATA_ARGS_FORMAT.matcher(args.trim());
+        // Validate arg string format
+        if (!matcher.matches()) {  
+            return new IncorrectCommand(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE));
+        }
+        try {
+            final int targetIndex = parseArgsAsDisplayedIndex(matcher.group("targetIndex"));
+            return new EditCommand(
+                    targetIndex,
+                    
+                    matcher.group("name"),
+
+                    matcher.group("phone"),
+                    (matcher.group("isPhonePrivate")==null?false:isPrivatePrefixPresent(matcher.group("isPhonePrivate"))),
+
+                    matcher.group("email"),
+                    (matcher.group("isEmailPrivate")==null?false:isPrivatePrefixPresent(matcher.group("isEmailPrivate"))),
+
+                    matcher.group("address"),
+                    (matcher.group("address")==null?false:isPrivatePrefixPresent(matcher.group("isAddressPrivate"))),
+
+                    getTagsFromArgs(matcher.group("tagArguments"))
+            );
+        } catch (ParseException | NumberFormatException e) {
+            return new IncorrectCommand(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE));
         } catch (IllegalValueException ive) {
             return new IncorrectCommand(ive.getMessage());
         }
