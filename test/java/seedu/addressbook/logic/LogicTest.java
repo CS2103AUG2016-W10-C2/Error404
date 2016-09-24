@@ -456,6 +456,19 @@ public class LogicTest {
                                 true,
                                 expectedList);
     }
+    
+    @Test
+    public void execute_edit_successful() throws Exception{
+        TestDataHelper helper = new TestDataHelper();
+        Person adam = helper.adam();
+        Person adamTest = helper.generatePersonWithName("Adam Brown");
+        
+        List<Person> expectedAdam = helper.generatePersonList(adam);
+        List<Person> expectedList = helper.generatePersonList(adamTest);
+        AddressBook expectedAB = helper.generateAddressBook(expectedAdam);
+        helper.addToAddressBook(addressBook, expectedList);
+        helper.generateEditCommand(0);
+    }
 
     /**
      * A utility class to generate test data.
