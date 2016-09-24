@@ -458,7 +458,7 @@ public class LogicTest {
     }
     
     @Test
-    public void execute_edit_successful() throws Exception{
+    public void execute_edit_fullDetail() throws Exception{
         TestDataHelper helper = new TestDataHelper();
         Person adam = helper.adam();
         Person adamTest = helper.generatePersonWithName("Adam Brown");
@@ -467,8 +467,41 @@ public class LogicTest {
         List<Person> expectedList = helper.generatePersonList(adamTest);
         AddressBook expectedAB = helper.generateAddressBook(expectedAdam);
         helper.addToAddressBook(addressBook, expectedList);
-        helper.generateEditCommand(0);
+        logic.setLastShownList(expectedList);
+        
+        assertCommandBehavior(helper.generateEditCommand(1,adam),
+                String.format(EditCommand.MESSAGE_SUCCESS, adam),
+                expectedAB,
+                false,
+                expectedList);
     }
+    
+    @Test
+    public void execute_edit_partialDetail() throws Exception{
+        TestDataHelper helper = new TestDataHelper();
+        Person adam = new Person(
+                new Name("Adam Brown"),
+                new Phone("1", false),
+                new Email("1234@email", true),
+                new Address("House of 1234", false),
+                new UniqueTagList(new Tag("tag"))
+        );
+                
+        Person adamTest = helper.generatePersonWithName("Adam Brown");
+        
+        List<Person> expectedAdam = helper.generatePersonList(adam);
+        List<Person> expectedList = helper.generatePersonList(adamTest);
+        AddressBook expectedAB = helper.generateAddressBook(expectedAdam);
+        helper.addToAddressBook(addressBook, expectedList);
+        logic.setLastShownList(expectedList);
+        
+        assertCommandBehavior(helper.generatePartialEditCommand(1,adam),
+                String.format(EditCommand.MESSAGE_SUCCESS, adam),
+                expectedAB,
+                false,
+                expectedList);
+    }
+    
 
     /**
      * A utility class to generate test data.
@@ -519,6 +552,39 @@ public class LogicTest {
             for(Tag t: tags){
                 cmd.add("t/" + t.tagName);
             }
+
+            return cmd.toString();
+        }
+        
+        /** Generates the correct edit command based on the index given */
+        String generateEditCommand(int i, Person p) {
+            StringJoiner cmd = new StringJoiner(" ");
+
+            cmd.add("edit");
+
+            cmd.add(Integer.toString(i));
+            cmd.add(p.getName().toString());
+            cmd.add((p.getPhone().isPrivate() ? "pp/" : "p/") + p.getPhone());
+            cmd.add((p.getEmail().isPrivate() ? "pe/" : "e/") + p.getEmail());
+            cmd.add((p.getAddress().isPrivate() ? "pa/" : "a/") + p.getAddress());
+
+            UniqueTagList tags = p.getTags();
+            for(Tag t: tags){
+                cmd.add("t/" + t.tagName);
+            }
+
+            return cmd.toString();
+        }
+        
+        /** Generates the correct partial edit command based on the index given */
+        String generatePartialEditCommand(int i, Person p) {
+            StringJoiner cmd = new StringJoiner(" ");
+
+            cmd.add("edit");
+
+            cmd.add(Integer.toString(i));
+            cmd.add((p.getEmail().isPrivate() ? "pe/" : "e/") + p.getEmail());
+            cmd.add((p.getAddress().isPrivate() ? "pa/" : "a/") + p.getAddress());
 
             return cmd.toString();
         }
