@@ -22,9 +22,9 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ":\n" + "Edits a person identified by the index number used in the last person listing. "
             + "Contact details can be marked private by prepending 'p' to the prefix.\n\t"
-            + "Parameters: INDEX [NAME] [p]p/PHONE [p]e/EMAIL [p]a/ADDRESS  [t/TAG]...\n\t"
+            + "Parameters: INDEX [NAME] [[p]p/PHONE] [[p]e/EMAIL] [[p]a/ADDRESS]  [t/TAG]...\n\t"
             + "Example: " + COMMAND_WORD
-            + " 0 John Doe p/98765432 e/johnd@gmail.com a/311, Clementi Ave 2, #02-25 t/friends t/owesMoney";
+            + " 1 John Doe p/98765432 e/johnd@gmail.com a/311, Clementi Ave 2, #02-25 t/friends t/owesMoney";
 
     public static final String MESSAGE_SUCCESS = "Person edited: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book";
