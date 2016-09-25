@@ -4,6 +4,7 @@ import seedu.addressbook.commands.Command;
 import seedu.addressbook.commands.CommandResult;
 import seedu.addressbook.data.AddressBook;
 import seedu.addressbook.data.person.ReadOnlyPerson;
+import seedu.addressbook.history.History;
 import seedu.addressbook.parser.Parser;
 import seedu.addressbook.storage.StorageFile;
 
@@ -19,6 +20,7 @@ public class Logic {
 
     private StorageFile storage;
     private AddressBook addressBook;
+    private History cmdHistory;
 
     /** The list of person shown to the user most recently.  */
     private List<? extends ReadOnlyPerson> lastShownList = Collections.emptyList();
@@ -26,6 +28,7 @@ public class Logic {
     public Logic() throws Exception{
         setStorage(initializeStorage());
         setAddressBook(storage.load());
+        setHistory();
     }
 
     Logic(StorageFile storageFile, AddressBook addressBook){
@@ -39,6 +42,10 @@ public class Logic {
 
     void setAddressBook(AddressBook addressBook){
         this.addressBook = addressBook;
+    }
+    
+    void setHistory() {
+        cmdHistory = new History();
     }
 
     /**
@@ -66,11 +73,16 @@ public class Logic {
 
     /**
      * Parses the user command, executes it, and returns the result.
+     * If the command mutates data and executed successfully, stores the command in History.
      * @throws Exception if there was any problem during command execution.
      */
     public CommandResult execute(String userCommandText) throws Exception {
         Command command = new Parser().parseCommand(userCommandText);
         CommandResult result = execute(command);
+        if(result.commandExecution) {
+            cmdHistory.addLastCommand(userCommandText);
+            cmdHistory.printStack();
+        }
         recordResult(result);
         return result;
     }
