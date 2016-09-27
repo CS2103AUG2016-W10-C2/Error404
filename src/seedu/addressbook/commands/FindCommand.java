@@ -13,7 +13,7 @@ public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ":\n" + "Finds all persons whose names contain any of "
-            + "the specified keywords (case-sensitive) and displays them as a list with index numbers.\n\t"
+            + "the specified keywords and displays them as a list with index numbers.\n\t"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n\t"
             + "Example: " + COMMAND_WORD + " alice bob charlie";
 
@@ -45,12 +45,32 @@ public class FindCommand extends Command {
     private List<ReadOnlyPerson> getPersonsWithNameContainingAnyKeyword(Set<String> keywords) {
         final List<ReadOnlyPerson> matchedPersons = new ArrayList<>();
         for (ReadOnlyPerson person : addressBook.getAllPersons()) {
-            final Set<String> wordsInName = new HashSet<>(person.getName().getWordsInName());
+            Set<String> wordsInName = new HashSet<>(person.getName().getWordsInName());
+            
+            wordsInName = (Set<String>) convertToLower(wordsInName);
+            keywords = convertToLower(keywords);
+            
             if (!Collections.disjoint(wordsInName, keywords)) {
                 matchedPersons.add(person);
             }
         }
         return matchedPersons;
+    }
+    
+    /**
+     *  Converts a Collections of Strings into their lower case format 
+     * 
+     * @param input source set
+     * @return lower case set
+     */
+    private static Set<String> convertToLower(Set<String> input){
+    	Set<String> output = new HashSet<>();
+    	
+    	for (String line : input){
+    		output.add(line.toLowerCase());
+    	}
+
+    	return output;
     }
 
 }
