@@ -2,10 +2,16 @@ package seedu.addressbook.logic;
 
 import seedu.addressbook.commands.Command;
 import seedu.addressbook.commands.CommandResult;
+import seedu.addressbook.commands.UndoCommand;
 import seedu.addressbook.data.AddressBook;
 import seedu.addressbook.data.person.ReadOnlyPerson;
+import seedu.addressbook.data.person.UniquePersonList;
+import seedu.addressbook.data.tag.UniqueTagList;
 import seedu.addressbook.parser.Parser;
+import seedu.addressbook.revision_control.CareTaker;
+import seedu.addressbook.revision_control.Originator;
 import seedu.addressbook.storage.StorageFile;
+import seedu.addressbook.storage.jaxb.AdaptedAddressBook;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +25,10 @@ public class Logic {
 
     private StorageFile storage;
     private AddressBook addressBook;
+    private Originator originator;
+    private CareTaker careTaker;
+    private int numCmd = 0;
+    private int numUndo = 0;
 
     /** The list of person shown to the user most recently.  */
     private List<? extends ReadOnlyPerson> lastShownList = Collections.emptyList();
@@ -26,12 +36,17 @@ public class Logic {
     public Logic() throws Exception{
         setStorage(initializeStorage());
         setAddressBook(storage.load());
+        originator = new Originator();
+        setCareTaker();
+ 
     }
 
     Logic(StorageFile storageFile, AddressBook addressBook){
         setStorage(storageFile);
         setAddressBook(addressBook);
-    }
+        originator = new Originator();
+        setCareTaker();
+    }    
 
     void setStorage(StorageFile storage){
         this.storage = storage;
@@ -39,6 +54,16 @@ public class Logic {
 
     void setAddressBook(AddressBook addressBook){
         this.addressBook = addressBook;
+    }    
+    
+    /**
+     * Sets the careTaker to be the initial state upon starting the program.
+     * CareTaker and originator will reset on every startup.
+     */
+    void setCareTaker() {
+        careTaker = new CareTaker();
+        originator.setState(addressBook);
+        careTaker.add(originator.saveStateToMemento());
     }
 
     /**
@@ -51,6 +76,14 @@ public class Logic {
 
     public String getStorageFilePath() {
         return storage.getPath();
+    }
+    
+    public Originator getOriginator() {
+        return originator;
+    }
+    
+    public CareTaker getCareTaker() {
+        return careTaker;
     }
 
     /**
@@ -70,6 +103,9 @@ public class Logic {
      */
     public CommandResult execute(String userCommandText) throws Exception {
         Command command = new Parser().parseCommand(userCommandText);
+        if (isUndo(command)) {            
+            command = new UndoCommand(originator, careTaker, numCmd, numUndo);
+        }
         CommandResult result = execute(command);
         recordResult(result);
         return result;
@@ -84,8 +120,32 @@ public class Logic {
      */
     private CommandResult execute(Command command) throws Exception {
         command.setData(addressBook, lastShownList);
+        numCmd++;
         CommandResult result = command.execute();
+        //TODO: save only if execute successfully mutates the data.
         storage.save(addressBook);
+        if (!result.getUndoStatus()) {
+            originator.setState(addressBook);
+            System.out.println(originator.getState() + " 1");
+            careTaker.add(originator.saveStateToMemento());
+            System.out.println(result.getUndoStatus());
+        }
+        else  {
+            // logic issues with num counter
+            numUndo++;           
+            System.out.println(careTaker.mementoList.size());
+            System.out.println(originator.getState() + " 2");
+           
+            /*
+             originator.getStateFromMemento(careTaker.get(0));
+             addressBook = new AddressBook(new UniquePersonList( originator.getState().getAllPersons()),        
+                                           new UniqueTagList(originator.getState().getAllTags()));// works for delete, To convert to command
+             */
+             
+            //AddressBook(UniquePersonList persons, UniqueTagList tags)
+        }
+        
+        
         return result;
     }
 
@@ -95,5 +155,9 @@ public class Logic {
         if (personList.isPresent()) {
             lastShownList = personList.get();
         }
+    }
+    
+    private boolean isUndo(Command command) {
+        return (command.getClass().equals( new UndoCommand(null).getClass()) ? true : false);
     }
 }
