@@ -2,7 +2,6 @@ package seedu.addressbook.parser;
 
 import seedu.addressbook.commands.*;
 import seedu.addressbook.data.exception.IllegalValueException;
-
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,6 +92,9 @@ public class Parser {
 
             case ExitCommand.COMMAND_WORD:
                 return new ExitCommand();
+            
+            case UndoCommand.COMMAND_WORD:
+                return new UndoCommand(null);
 
             case HelpCommand.COMMAND_WORD: // Fallthrough
             default:
@@ -275,6 +277,5 @@ public class Parser {
         final Set<String> keywordSet = new HashSet<>(Arrays.asList(keywords));
         return new FindCommand(keywordSet);
     }
-
 
 }
